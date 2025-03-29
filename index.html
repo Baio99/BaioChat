@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeonChat - Chat Moderno</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="dark-theme">
+    <!-- Fondo con partículas -->
+    <div id="particles-js"></div>
+
+    <!-- Contenedor principal -->
+    <div class="app-container animate__animated animate__fadeIn">
+        <!-- Panel de autenticación -->
+        <div id="auth-panel" class="auth-container glassmorphism">
+            <div class="logo-container">
+                <i class="fas fa-comment-dots logo-icon animate__animated animate__pulse animate__infinite"></i>
+                <h1 class="logo-text">Neon<span>Chat</span></h1>
+                <p class="tagline">Comunicación en tiempo real</p>
+            </div>
+
+            <div class="auth-tabs">
+                <ul class="nav nav-tabs" id="authTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login"
+                            type="button" role="tab">Iniciar Sesión</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register"
+                            type="button" role="tab">Registrarse</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="authTabContent">
+                    <div class="tab-pane fade show active" id="login" role="tabpanel">
+                        <!-- Formulario de login -->
+                        <form id="login-form" class="auth-form">
+                            <div class="input-group">
+                                <span class="input-icon"><i class="fas fa-user"></i></span>
+                                <input type="text" id="login-username" class="form-control" placeholder="Usuario"
+                                    required>
+                                <div class="invalid-feedback">Por favor ingresa tu usuario</div>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-icon"><i class="fas fa-lock"></i></span>
+                                <input type="password" id="login-password" class="form-control" placeholder="Contraseña"
+                                    required>
+                                <div class="invalid-feedback">Por favor ingresa tu contraseña</div>
+                            </div>
+                            <button type="button" id="login-btn" class="btn btn-primary btn-glow">Ingresar</button>
+                        </form>
+                    </div>
+
+                    <div class="tab-pane fade" id="register" role="tabpanel">
+                        <form id="register-form" class="auth-form">
+                            <div class="input-group">
+                                <span class="input-icon"><i class="fas fa-user-plus"></i></span>
+                                <input type="text" id="reg-username" class="form-control" placeholder="Usuario" required>
+                                <div class="invalid-feedback" style="display: none;"></div> <!-- Mensaje dinámico -->
+                            </div>
+                            <div class="input-group">
+                                <span class="input-icon"><i class="fas fa-lock"></i></span>
+                                <input type="password" id="reg-password" class="form-control" placeholder="Contraseña" required>
+                                <div class="invalid-feedback" style="display: none;"></div> <!-- Mensaje dinámico -->
+                            </div>
+                            <button type="button" id="register-btn" class="btn btn-secondary btn-glow">Registrarse</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel principal (oculto inicialmente) -->
+        <div id="main-panel" class="d-none main-container glassmorphism">
+            <!-- Barra superior -->
+            <div class="top-bar">
+                <div class="user-info">
+                    <div class="avatar animate__animated animate__bounceIn">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <h5 id="welcome-message" class="username">Bienvenido</h5>
+                        <small class="status online">En línea</small>
+                    </div>
+                </div>
+                <button id="logout-btn" class="btn btn-danger btn-sm btn-glow">
+                    <i class="fas fa-sign-out-alt"></i> Salir
+                </button>
+            </div>
+
+            <!-- Contenido principal -->
+            <div class="main-content">
+                <!-- Panel de salas -->
+                <div class="rooms-panel">
+                    <div class="panel-header">
+                        <h4><i class="fas fa-door-open"></i> Salas de Chat</h4>
+                        <button id="create-room-btn" class="btn btn-success btn-sm btn-glow">
+                            <i class="fas fa-plus"></i> Nueva
+                        </button>
+                    </div>
+
+                    <!-- Formulario para crear sala (oculto inicialmente) -->
+                    <div id="room-form" class="room-form d-none">
+                        <div class="input-group">
+                            <input type="text" id="room-name" class="form-control" placeholder="Nombre de la sala">
+                        </div>
+                        <div class="form-actions">
+                            <button id="confirm-room-btn" class="btn btn-primary btn-sm">Crear</button>
+                            <button id="cancel-room-btn" class="btn btn-secondary btn-sm">Cancelar</button>
+                        </div>
+                    </div>
+
+                    <!-- Lista de salas -->
+                    <ul id="room-list" class="room-list">
+                        <li class="list-group-item text-muted">Cargando salas...</li>
+                    </ul>
+                </div>
+
+                <!-- Panel de chat -->
+                <div class="chat-panel">
+                    <div class="chat-header">
+                        <h4 id="current-room"><i class="fas fa-hashtag"></i> Selecciona una sala</h4>
+                    </div>
+
+                    <!-- Mensajes -->
+                    <div id="messages" class="messages-container">
+                        <div class="empty-state">
+                            <i class="fas fa-comments"></i>
+                            <p>Selecciona una sala para comenzar a chatear</p>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de mensaje (oculto inicialmente) -->
+                    <form id="message-form" class="message-form d-none">
+                        <div class="input-group">
+                            <input type="text" id="message-input" class="form-control"
+                                placeholder="Escribe un mensaje...">
+                            <button id="send-btn" class="btn btn-primary" type="button">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="script.js"></script>
+
+    <script>
+        // Inicialización de partículas
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.particlesJS) {
+                particlesJS('particles-js', {
+                    particles: {
+                        number: { value: 80, density: { enable: true, value_area: 800 } },
+                        color: { value: "#4e44ce" },
+                        shape: { type: "circle" },
+                        opacity: { value: 0.5, random: true },
+                        size: { value: 3, random: true },
+                        line_linked: { enable: true, distance: 150, color: "#4e44ce", opacity: 0.4, width: 1 },
+                        move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out" }
+                    },
+                    interactivity: {
+                        detect_on: "canvas",
+                        events: {
+                            onhover: { enable: true, mode: "repulse" },
+                            onclick: { enable: true, mode: "push" }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+
+<!-- Modal de confirmación para eliminar sala -->
+<div class="modal fade" id="deleteRoomModal" tabindex="-1" aria-labelledby="deleteRoomModalLabel" aria-modal="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content glassmorphism">
+        <div class="modal-header border-0">
+          <h5 class="modal-title text-danger" id="deleteRoomModalLabel">
+            <i class="fas fa-exclamation-triangle me-2"></i> Confirmar eliminación
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar esta sala? Esta acción no se puede deshacer.</p>
+          <p class="text-muted small">Todos los mensajes y datos de la sala se perderán permanentemente.</p>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary btn-glow" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger btn-glow" id="confirmDeleteRoom">
+            <span id="deleteButtonText">Eliminar</span>
+            <span id="deleteButtonSpinner" class="spinner-border spinner-border-sm d-none"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
