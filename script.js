@@ -213,6 +213,7 @@ async function login() {
             // Inicializar WebSocket y cargar salas
             initSocket();
             loadRooms();
+            updateOnlineUsers(); // Nueva función
         } else {
             // Mostrar error específico para credenciales incorrectas
             if (response.status === 401) {
@@ -490,7 +491,8 @@ function initSocket() {
     socket = io(SOCKET_URL, {
         auth: {
             token: currentToken
-        }
+        },
+        transports: ['websocket'] // Fuerza usar WebSocket
     });
 
     socket.on('connect', () => {
@@ -498,10 +500,30 @@ function initSocket() {
         
         // Enviar información del usuario al conectarse
         socket.emit('setUserInfo', {
-            username: currentUser.username,
-            userId: currentUser.id
+            _id: currentUser.id,
+            username: currentUser.username
         });
     });
+
+    // Nuevos listeners para estados de usuario
+    socket.on('user-status-changed', (data) => {
+        console.log('Estado de usuario cambiado:', data);
+        // Actualizar UI si es relevante (ej. lista de usuarios online)
+    });
+
+    socket.on('user-room-changed', (data) => {
+        console.log('Usuario cambió de sala:', data);
+        // Puedes mostrar notificaciones cuando alguien entra/sale
+    });
+
+    socket.on('user-typing', (data) => {
+        if (currentRoom && data.roomId === currentRoom._id) {
+            // Mostrar indicador de "escribiendo"
+            showTypingIndicator(data.userId, data.username, data.isTyping);
+        }
+    });
+
+    //sockets anteriores
 
     socket.on('disconnect', () => {
         console.log('Desconectado del servidor de WebSocket');
@@ -568,9 +590,82 @@ function initSocket() {
             e.preventDefault(); // Evitar comportamiento por defecto
             sendMessage();
         }
+       
     });
+
+    messageInput.addEventListener('input', () => {
+        if (currentRoom) {
+            socket.emit('typing', currentRoom._id);
+        }
+    });
+
+    // Agrega un timeout para limpiar el estado
+let typingTimeout;
+messageInput.addEventListener('keydown', () => {
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        if (currentRoom) {
+            socket.emit('typing', currentRoom._id);
+        }
+    }, 2000);
+});
+
+
+
 }
 
+//Función para Mostrar Usuarios Escribiendo
+function showTypingIndicator(userId, username, isTyping) {
+    const typingId = `typing-${userId}`;
+    let typingElement = document.getElementById(typingId);
+    
+    if (isTyping) {
+        if (!typingElement) {
+            typingElement = document.createElement('div');
+            typingElement.id = typingId;
+            typingElement.className = 'typing-indicator';
+            typingElement.textContent = `${username} está escribiendo...`;
+            messagesContainer.appendChild(typingElement);
+        }
+    } else {
+        if (typingElement) {
+            typingElement.remove();
+        }
+    }
+    
+    // Auto-scroll
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Obtener usuarios online
+async function getOnlineUsers() {
+    try {
+        const response = await fetch(`${API_URL}/status/online-users`, {
+            headers: {
+                'Authorization': `Bearer ${currentToken}`
+            }
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Error obteniendo usuarios online:', error);
+        return [];
+    }
+}
+
+// Obtener estado de un usuario específico
+async function getUserStatus(userId) {
+    try {
+        const response = await fetch(`${API_URL}/status/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${currentToken}`
+            }
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Error obteniendo estado de usuario:', error);
+        return null;
+    }
+}
 
 // Añade al inicio de tu script, después de los event listeners existentes:
 document.getElementById('login-form').addEventListener('keypress', (e) => {
@@ -594,7 +689,7 @@ document.getElementById('message-form').addEventListener('keypress', (e) => {
     }
 });
 
-function joinRoom(room) {
+async function joinRoom(room) {
     // Salir de la sala actual si hay una
     if (currentRoom) {
         leaveCurrentRoom();
@@ -608,10 +703,20 @@ function joinRoom(room) {
     currentRoomDisplay.textContent = room.name;
     messageForm.classList.remove('d-none');
     messageInput.focus();
-    
+
+      
     // Marcar sala como activa en la lista
     const roomItems = document.querySelectorAll('.room-item');
     roomItems.forEach(item => {
+        item.classList.remove('active-room');
+        if (item.getAttribute('data-room-id') === room._id) {
+            item.classList.add('active-room');
+        }
+    });
+
+
+     // Marcar sala como activa
+     document.querySelectorAll('.room-item').forEach(item => {
         item.classList.remove('active-room');
         if (item.getAttribute('data-room-id') === room._id) {
             item.classList.add('active-room');
@@ -621,6 +726,20 @@ function joinRoom(room) {
     // Limpiar mensajes anteriores
     messagesContainer.innerHTML = '';
     addSystemMessage(`Te has unido a la sala "${room.name}"`);
+
+    // Obtener y mostrar usuarios en la sala
+    // Obtener y mostrar usuarios en la sala (con await)
+    try {
+        const usersInRoom = await getOnlineUsers();
+        const roomUsers = usersInRoom.filter(u => u.currentRoom === room._id);
+        
+        if (roomUsers.length > 0) {
+            const usersList = roomUsers.map(u => u.username).join(', ');
+            addSystemMessage(`Usuarios en la sala: ${usersList}`);
+        }
+    } catch (error) {
+        console.error('Error al obtener usuarios:', error);
+    }
 }
 
 function leaveCurrentRoom() {
@@ -729,6 +848,28 @@ function showAlert(type, message, duration = 5000) {
 }
 
 
+async function updateOnlineUsers() {
+    const usersList = document.getElementById('users-list');
+    if (!usersList) return;
+    
+    const users = await getOnlineUsers();
+    usersList.innerHTML = '';
+    
+    users.forEach(user => {
+        const userItem = document.createElement('li');
+        userItem.className = 'users-list-item';
+        userItem.innerHTML = `
+            <span class="user-status ${user.online ? 'online' : 'offline'}"></span>
+            ${user.username}
+            ${user.currentRoom ? `<small class="text-muted"> (en sala)</small>` : ''}
+        `;
+        usersList.appendChild(userItem);
+    });
+    
+    // Actualizar periódicamente
+    setTimeout(updateOnlineUsers, 10000);
+}
+
 // Validación de formulario de login
 // Mueve este código al final del archivo, justo antes de validateLoginForm
 document.addEventListener('DOMContentLoaded', function() {
@@ -768,3 +909,24 @@ function validateLoginForm() {
 
     return isValid;
 }
+
+// Minimizar/expandir panel de usuarios
+document.querySelector('.toggle-users-btn')?.addEventListener('click', function() {
+    const usersPanel = document.querySelector('.users-panel');
+    usersPanel.classList.toggle('collapsed');
+    
+    // Actualizar icono
+    const icon = this.querySelector('i');
+    if (usersPanel.classList.contains('collapsed')) {
+        localStorage.setItem('usersPanelCollapsed', 'true');
+    } else {
+        localStorage.removeItem('usersPanelCollapsed');
+    }
+});
+
+// Verificar estado almacenado al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem('usersPanelCollapsed') === 'true') {
+        document.querySelector('.users-panel')?.classList.add('collapsed');
+    }
+});

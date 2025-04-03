@@ -61,15 +61,18 @@
                         <form id="register-form" class="auth-form">
                             <div class="input-group">
                                 <span class="input-icon"><i class="fas fa-user-plus"></i></span>
-                                <input type="text" id="reg-username" class="form-control" placeholder="Usuario" required>
+                                <input type="text" id="reg-username" class="form-control" placeholder="Usuario"
+                                    required>
                                 <div class="invalid-feedback" style="display: none;"></div> <!-- Mensaje dinámico -->
                             </div>
                             <div class="input-group">
                                 <span class="input-icon"><i class="fas fa-lock"></i></span>
-                                <input type="password" id="reg-password" class="form-control" placeholder="Contraseña" required>
+                                <input type="password" id="reg-password" class="form-control" placeholder="Contraseña"
+                                    required>
                                 <div class="invalid-feedback" style="display: none;"></div> <!-- Mensaje dinámico -->
                             </div>
-                            <button type="button" id="register-btn" class="btn btn-secondary btn-glow">Registrarse</button>
+                            <button type="button" id="register-btn"
+                                class="btn btn-secondary btn-glow">Registrarse</button>
                         </form>
                     </div>
                 </div>
@@ -92,6 +95,9 @@
                 <button id="logout-btn" class="btn btn-danger btn-sm btn-glow">
                     <i class="fas fa-sign-out-alt"></i> Salir
                 </button>
+
+
+
             </div>
 
             <!-- Contenido principal -->
@@ -122,6 +128,8 @@
                     </ul>
                 </div>
 
+
+
                 <!-- Panel de chat -->
                 <div class="chat-panel">
                     <div class="chat-header">
@@ -147,6 +155,22 @@
                         </div>
                     </form>
                 </div>
+
+
+                <!-- Panel de usuarios conectados -->
+                <div class="users-panel">
+                    <div class="panel-header">
+                        <h4><i class="fas fa-users"></i> Usuarios Conectados</h4>
+                    </div>
+                    <ul id="users-list" class="users-list">
+                        <!-- Se llenará dinámicamente -->
+                    </ul>
+                </div>
+
+
+
+
+
             </div>
         </div>
     </div>
@@ -183,30 +207,31 @@
         });
     </script>
 
-<!-- Modal de confirmación para eliminar sala -->
-<div class="modal fade" id="deleteRoomModal" tabindex="-1" aria-labelledby="deleteRoomModalLabel" aria-modal="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content glassmorphism">
-        <div class="modal-header border-0">
-          <h5 class="modal-title text-danger" id="deleteRoomModalLabel">
-            <i class="fas fa-exclamation-triangle me-2"></i> Confirmar eliminación
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+    <!-- Modal de confirmación para eliminar sala -->
+    <div class="modal fade" id="deleteRoomModal" tabindex="-1" aria-labelledby="deleteRoomModalLabel" aria-modal="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glassmorphism">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-danger" id="deleteRoomModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Confirmar eliminación
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas eliminar esta sala? Esta acción no se puede deshacer.</p>
+                    <p class="text-muted small">Todos los mensajes y datos de la sala se perderán permanentemente.</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary btn-glow" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger btn-glow" id="confirmDeleteRoom">
+                        <span id="deleteButtonText">Eliminar</span>
+                        <span id="deleteButtonSpinner" class="spinner-border spinner-border-sm d-none"></span>
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="modal-body">
-          <p>¿Estás seguro de que deseas eliminar esta sala? Esta acción no se puede deshacer.</p>
-          <p class="text-muted small">Todos los mensajes y datos de la sala se perderán permanentemente.</p>
-        </div>
-        <div class="modal-footer border-0">
-          <button type="button" class="btn btn-secondary btn-glow" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger btn-glow" id="confirmDeleteRoom">
-            <span id="deleteButtonText">Eliminar</span>
-            <span id="deleteButtonSpinner" class="spinner-border spinner-border-sm d-none"></span>
-          </button>
-        </div>
-      </div>
     </div>
-  </div>
 </body>
 
 </html>
